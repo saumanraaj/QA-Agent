@@ -196,9 +196,6 @@ Agents continuously learn and improve:
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Acknowledgments
 
@@ -207,13 +204,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Android in the Wild**: Real user session dataset
 - **OpenAI**: LLM integration and reasoning capabilities
 
-## Support
-
-For questions and support:
-- Create an issue in the GitHub repository
-- Check the documentation in the `docs/` folder
-- Review the example configurations in `examples/`
-
----
 
 **Built for the QualGent Research Scientist coding challenge** 
