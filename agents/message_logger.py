@@ -25,6 +25,7 @@ class MessageLogger:
         self.log_dir = log_dir
         self.test_trace = []
         self.current_test_id = None
+        self.screenshot_paths = []  # Track screenshot paths for JSON output
         
         # Create logs directory if it doesn't exist
         os.makedirs(log_dir, exist_ok=True)
@@ -94,7 +95,7 @@ class MessageLogger:
         reason = verification_result.get("reason", "No reason provided")
         logger.info(f"Verifier result for '{subgoal}': {'PASS' if success else 'FAIL'} - {reason}")
     
-    def log_screenshot(self, screenshot: Any, step_number: int, description: str = ""):
+    def log_screenshot(self, screenshot: Any, step_number: int, description: str = "", screenshot_path: str = None):
         """Log screenshot for visual traces (QualGent challenge requirement)"""
         if not SCREENSHOT_AVAILABLE:
             logger.warning("Screenshot functionality is not available. Skipping screenshot logging.")
@@ -122,9 +123,14 @@ class MessageLogger:
                 "description": description,
                 "screenshot_base64": img_base64,
                 "image_format": "PNG",
-                "image_size": img.size if hasattr(img, 'size') else "unknown"
+                "image_size": img.size if hasattr(img, 'size') else "unknown",
+                "screenshot_path": screenshot_path  # Add screenshot path to message
             }
             self.test_trace.append(message)
+            
+            # Track screenshot path for JSON output
+            if screenshot_path:
+                self.screenshot_paths.append(screenshot_path)
             
             logger.info(f"Screenshot logged for step {step_number}: {description}")
             
@@ -183,8 +189,10 @@ class MessageLogger:
                     "duration": self._calculate_test_duration(),
                     "success_rate": final_results.get("success_rate", 0.0),
                     "passed_steps": final_results.get("passed_steps", 0),
-                    "total_steps": final_results.get("total_steps", 0)
+                    "total_steps": final_results.get("total_steps", 0),
+                    "screenshots_captured": len(self.screenshot_paths)
                 },
+                "screenshot_paths": self.screenshot_paths,  # Add screenshot paths to JSON
                 "events": self.test_trace
             }
             

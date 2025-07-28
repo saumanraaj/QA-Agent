@@ -1,5 +1,6 @@
 import logging
 import uuid
+import os
 from datetime import datetime
 from android_world.env import env_launcher
 from agents.planner_agent import PlannerAgent
@@ -7,6 +8,15 @@ from agents.executor_agent import ExecutorAgent
 from agents.verifier_agent import VerifierAgent
 from agents.supervisor_agent import SupervisorAgent
 from agents.message_logger import MessageLogger
+
+# Import for screenshot functionality
+try:
+    from PIL import Image
+    import numpy as np
+    SCREENSHOT_AVAILABLE = True
+except ImportError:
+    SCREENSHOT_AVAILABLE = False
+    logging.warning("Screenshot functionality not available - missing PIL or numpy")
 
 # Configure logging
 logging.basicConfig(
@@ -35,6 +45,36 @@ def _get_failure_context(test_trace, failed_subgoal):
     
     return context
 
+def _save_screenshot(screenshot, task_name, step_number, traces_dir="traces"):
+    """Save screenshot to traces/<task_name>/step_<i>.png"""
+    if not SCREENSHOT_AVAILABLE:
+        logger.warning("Screenshot functionality not available. Skipping screenshot save.")
+        return None
+    
+    try:
+        # Create traces directory structure
+        task_traces_dir = os.path.join(traces_dir, task_name.replace(" ", "_"))
+        os.makedirs(task_traces_dir, exist_ok=True)
+        
+        # Generate screenshot filename
+        screenshot_filename = f"step_{step_number}.png"
+        screenshot_path = os.path.join(task_traces_dir, screenshot_filename)
+        
+        # Convert to PIL Image if needed and save
+        if isinstance(screenshot, np.ndarray):
+            img = Image.fromarray(screenshot)
+        else:
+            img = screenshot
+        
+        img.save(screenshot_path)
+        logger.info(f"Screenshot saved: {screenshot_path}")
+        
+        return screenshot_path
+        
+    except Exception as e:
+        logger.error(f"Failed to save screenshot: {e}")
+        return None
+
 def run_agent_s_qa_test(task_instruction: str = "Turn Wi-Fi on and off", task_name: str = "settings_wifi"):
     """Run Agent-S compliant QA test with LLM-powered agents using OTA AndroidEnv"""
     
@@ -47,6 +87,9 @@ def run_agent_s_qa_test(task_instruction: str = "Turn Wi-Fi on and off", task_na
     test_id = f"qa_test_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{str(uuid.uuid4())[:8]}"
     message_logger = MessageLogger()
     message_logger.start_test(test_id, task_instruction)
+    
+    # Initialize screenshot tracking
+    screenshot_paths = []
     
     try:
         print("Initializing Android environment...")
@@ -67,7 +110,14 @@ def run_agent_s_qa_test(task_instruction: str = "Turn Wi-Fi on and off", task_na
         # Capture initial screenshot for visual traces (QualGent requirement)
         try:
             initial_screenshot = env.render(mode="rgb_array")
-            message_logger.log_screenshot(initial_screenshot, 0, "Initial state")
+            
+            # Save initial screenshot
+            initial_path = _save_screenshot(initial_screenshot, task_name, 0)
+            if initial_path:
+                screenshot_paths.append(initial_path)
+            
+            message_logger.log_screenshot(initial_screenshot, 0, "Initial state", initial_path)
+                
         except Exception as e:
             logger.warning(f"Could not capture initial screenshot: {e}")
         
@@ -126,7 +176,14 @@ def run_agent_s_qa_test(task_instruction: str = "Turn Wi-Fi on and off", task_na
                         action_screenshot = observation["pixels"]
                     else:
                         action_screenshot = env.render(mode="rgb_array")
-                    message_logger.log_screenshot(action_screenshot, i, f"After executing: {subgoal}")
+                    
+                    # Save screenshot to traces folder
+                    screenshot_path = _save_screenshot(action_screenshot, task_name, i)
+                    if screenshot_path:
+                        screenshot_paths.append(screenshot_path)
+                    
+                    message_logger.log_screenshot(action_screenshot, i, f"After executing: {subgoal}", screenshot_path)
+                        
                 except Exception as e:
                     logger.warning(f"Could not capture screenshot after action: {e}")
                 
@@ -210,8 +267,15 @@ def run_agent_s_qa_test(task_instruction: str = "Turn Wi-Fi on and off", task_na
                                     action_screenshot = observation["pixels"]
                                 else:
                                     action_screenshot = env.render(mode="rgb_array")
+                                
+                                # Save replanning screenshot
+                                replan_screenshot_path = _save_screenshot(action_screenshot, task_name, f"replan_{total_replanning_attempts}")
+                                if replan_screenshot_path:
+                                    screenshot_paths.append(replan_screenshot_path)
+                                
                                 message_logger.log_screenshot(action_screenshot, f"replan_{total_replanning_attempts}", 
-                                                            f"After replanning: {alt_subgoal}")
+                                                            f"After replanning: {alt_subgoal}", replan_screenshot_path)
+                                    
                             except Exception as e:
                                 logger.warning(f"Could not capture replanning screenshot: {e}")
                             
@@ -278,13 +342,15 @@ def run_agent_s_qa_test(task_instruction: str = "Turn Wi-Fi on and off", task_na
             "success_rate": (passed_steps / total_steps) * 100 if total_steps > 0 else 0,
             "failed_subgoals": failed_subgoals,
             "test_summary": message_logger.get_test_summary(),
-            "supervisor_analysis": supervisor_analysis
+            "supervisor_analysis": supervisor_analysis,
+            "screenshot_paths": screenshot_paths  # Add screenshot paths to final results
         }
         
         print("=== Test Results ===")
         print(f"Passed: {passed_steps}/{total_steps} steps")
         print(f"Success Rate: {final_results['success_rate']:.1f}%")
         print(f"Failed Subgoals: {len(failed_subgoals)}")
+        print(f"Screenshots captured: {len(screenshot_paths)}")
         
         if passed_steps == total_steps:
             print("All steps completed successfully!")
@@ -299,7 +365,14 @@ def run_agent_s_qa_test(task_instruction: str = "Turn Wi-Fi on and off", task_na
         # Capture final screenshot for visual traces (QualGent requirement)
         try:
             final_screenshot = env.render(mode="rgb_array")
-            message_logger.log_screenshot(final_screenshot, total_steps + 1, "Final state after test completion")
+            
+            # Save final screenshot
+            final_path = _save_screenshot(final_screenshot, task_name, total_steps + 1)
+            if final_path:
+                screenshot_paths.append(final_path)
+            
+            message_logger.log_screenshot(final_screenshot, total_steps + 1, "Final state after test completion", final_path)
+                
         except Exception as e:
             logger.warning(f"Could not capture final screenshot: {e}")
         
