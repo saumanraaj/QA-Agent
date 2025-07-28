@@ -96,9 +96,8 @@ def run_agent_s_qa_test(task_instruction: str = "Turn Wi-Fi on and off", task_na
         # Use AndroidEnv with specific task name as required by QualGent challenge
         from android_world.env import env_launcher
         
-        # QualGent challenge format: env = AndroidEnv(task_name="settings_wifi")
+        # QualGent challenge format: env = AndroidEnv()
         env = env_launcher.load_and_setup_env(
-            task_name=task_name,  # Specific task name as required
             console_port=5554,
             emulator_setup=False,
             freeze_datetime=True
