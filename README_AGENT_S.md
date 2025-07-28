@@ -2,7 +2,7 @@
 
 A fully Agent-S compliant, LLM-driven Android UI testing framework built for the QualGent Research Scientist Coding Challenge. This system implements pure LLM reasoning with no hardcoded logic or fallback behavior.
 
-## 🏗️ System Architecture
+##  System Architecture
 
 The system implements the complete Agent-S loop: **Planner → Executor → Verifier → Replanner (if needed) → Supervisor**
 
@@ -37,7 +37,7 @@ The system implements the complete Agent-S loop: **Planner → Executor → Veri
 - **Features**: JSON-structured logs, test summaries, replay capability
 - **Output**: `logs/test_trace_*.json` files for SupervisorAgent review
 
-## 🧠 LLM Integration
+##  LLM Integration
 
 ### LLM Engine (`agents/llm_engine.py`)
 - **OpenAI Support**: GPT-4o-mini, GPT-4, GPT-3.5-turbo
@@ -55,7 +55,7 @@ Your task is to break down complex Android testing scenarios into executable UI 
 - Specific and actionable
 - In logical sequence
 - Android UI-focused (tap, swipe, type, etc.)
-- Clear and unambiguous
+- Unambiguous
 
 Return ONLY a JSON array of strings. Example:
 ["Open Settings", "Tap on 'Network & Internet'", "Tap on 'Wi-Fi'", "Toggle Wi-Fi ON"]
@@ -65,7 +65,7 @@ Do not include explanations or markdown formatting - just the JSON array.
 
 #### ExecutorAgent Prompt
 ```
-You are an Android UI agent. Given the current UI tree and subgoal, identify which node to interact with and the action (e.g. "click", "toggle").
+You are an Android UI agent. Given the current UI tree and subgoal, identify which node to interact with and the action (e.g., "click", "toggle").
 
 Analyze the UI tree to find the best element for the given subgoal. Consider:
 - Text content relevance
@@ -107,7 +107,7 @@ Return a JSON object:
     "confidence": 0.0-1.0
 }
 
-Be strict in your evaluation - only mark as success if the UI clearly shows the expected outcome.
+Be strict in your evaluation - only mark as a success if the UI clearly shows the expected outcome.
 ```
 
 #### SupervisorAgent Prompt
@@ -130,7 +130,7 @@ Return a JSON object:
 }
 ```
 
-## 🚀 Usage
+##  Usage
 
 ### Prerequisites
 ```bash
@@ -183,10 +183,10 @@ Generated 5 subgoals:
 
 === Execution Phase ===
 Step 1/5: Open Settings
-  ✅ PASS: Settings screen is visible
+   PASS: Settings screen is visible
 
 Step 2/5: Tap on 'Network & Internet'
-  ✅ PASS: Network settings screen is visible
+   PASS: Network settings screen is visible
 
 ...
 
@@ -203,13 +203,13 @@ Success Rate: 100.0%
 Failed Subgoals: 0
 ```
 
-## 📊 Agent-S Compliance Features
+##  Agent-S Compliance Features
 
 ### 1. **Pure LLM Decision-Making**
-- ❌ No hardcoded logic or fallback behavior
-- ✅ Every decision = LLM + UI tree input
-- ✅ Structured JSON responses for interoperability
-- ✅ Centralized prompt management
+-  No hardcoded logic or fallback behavior
+-  Every decision = LLM + UI tree input
+-  Structured JSON responses for interoperability
+-  Centralized prompt management
 
 ### 2. **Agent-S Control Flow**
 - **Planner → Executor → Verifier** loop
@@ -234,7 +234,7 @@ Failed Subgoals: 0
 }
 ```
 
-## 🔧 Configuration
+##  Configuration
 
 ### LLM Engine Selection
 ```python
@@ -254,7 +254,7 @@ logging.basicConfig(level=logging.INFO)
 message_logger = MessageLogger(log_dir="custom_logs")
 ```
 
-## 📁 Project Structure
+##  Project Structure
 
 ```
 QA testing/
@@ -273,7 +273,7 @@ QA testing/
 └── Agent-S/                  # Agent-S framework reference
 ```
 
-## 🎯 Supported Tasks
+##  Supported Tasks
 
 ### LLM-Generated Tasks
 The system can handle any Android task through pure LLM reasoning:
@@ -289,14 +289,14 @@ The system can handle any Android task through pure LLM reasoning:
 tasks = [
     "Turn Wi-Fi on and off",
     "Enable Bluetooth and pair with device",
-    "Open Settings and check battery level",
+    "Open Settings and check battery level.",
     "Install and configure a new app",
-    "Fill out a contact form",
+    "Fill out a contact form.",
     "Handle a permission dialog"
 ]
 ```
 
-## 🔄 Agent-S Loop Implementation
+##  Agent-S Loop Implementation
 
 ### 1. **Planning Phase**
 ```python
@@ -319,7 +319,7 @@ message_logger.log_verifier_message(subgoal, new_ui_tree, verification_result)
 ```
 
 ### 4. **Replanning Phase** (if needed)
-```python
+``` python
 if failed_subgoals:
     new_subgoals = planner.plan(replan_prompt)
     message_logger.log_replan_message(failed_subgoals, new_subgoals)
@@ -331,7 +331,7 @@ supervisor_analysis = supervisor.analyze_test_execution(test_trace, task_instruc
 prompt_improvements = supervisor.suggest_prompt_improvements(test_trace)
 ```
 
-## 🚀 Future Enhancements
+## Future Enhancements
 
 ### 1. **Advanced LLM Features**
 - Multi-modal input (screenshots + UI tree)
@@ -392,7 +392,7 @@ logger.log_planner_message(subgoals)
 logger.log_test_end(final_results)
 ```
 
-## ⚠️ Important Notes
+## ⚠ Important Notes
 
 ### No Fallback Mode
 - This system requires valid API keys
@@ -401,7 +401,7 @@ logger.log_test_end(final_results)
 - Designed for production use with real LLMs
 
 ### OTA Requirements
-- Requires running Android emulator
+- Requires running an Android emulator
 - Uses real `AndroidEnv` for interaction
 - No mock or simulated environments
 - Real UI tree analysis and interaction
@@ -412,16 +412,6 @@ logger.log_test_end(final_results)
 - Modular agent architecture
 - Comprehensive logging and analysis
 
-## 🤝 Contributing
+##  Contributing
 
-This is a research implementation for the QualGent Research Scientist Coding Challenge. For production use:
-
-1. **Add comprehensive unit tests**
-2. **Implement proper error handling**
-3. **Add configuration management**
-4. **Expand task coverage**
-5. **Integrate with CI/CD pipelines**
-
-## 📄 License
-
-Research implementation for QualGent Research Scientist Coding Challenge. Based on Agent-S architecture with pure LLM-driven decision-making. 
+This is a research implementation for the QualGent Research Scientist Coding Challenge.
